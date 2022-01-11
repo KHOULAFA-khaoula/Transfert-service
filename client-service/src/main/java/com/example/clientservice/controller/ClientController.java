@@ -30,7 +30,7 @@ public class ClientController {
     @PostMapping("/")
     public ResponseEntity<?> save(@Valid @RequestBody ClientDTO clientDTO) throws Exception {
         if (clientDTO == null)
-            return ResponseEntity.badRequest().body("The provided movie is not valid");
+            return ResponseEntity.badRequest().body("The provided client is not valid");
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(clientConverter.convertToDTO(clientService.save(clientConverter.convertToDM(clientDTO))));
@@ -38,7 +38,7 @@ public class ClientController {
     @PutMapping("/")
     public ResponseEntity<?> update(@Valid @RequestBody ClientDTO clientDTO) throws Exception {
         if (clientDTO == null)
-            return ResponseEntity.badRequest().body("The provided movie is not valid");
+            return ResponseEntity.badRequest().body("The provided client is not valid");
         return ResponseEntity
                 .ok()
                 .body(clientConverter.convertToDTO(clientService.update(clientConverter.convertToDM(clientDTO))));
