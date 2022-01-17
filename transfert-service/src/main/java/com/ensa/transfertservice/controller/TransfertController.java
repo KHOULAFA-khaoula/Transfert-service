@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/transferts")
 @Slf4j
@@ -16,6 +18,12 @@ public class TransfertController {
 
     @Autowired
     private TransfertService transfertService;
+
+    @GetMapping("/all")
+    public List<Transfert> readAllTransferts() {
+        //log.info("Inside saveTransfert method of TransfertController");
+        return  transfertService.findAllTransferts();
+    }
 
     @PostMapping("/")
     public Transfert saveTransfert(@RequestBody Transfert transfert) {
