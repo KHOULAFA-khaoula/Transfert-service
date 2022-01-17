@@ -20,21 +20,21 @@ public class TransfertController {
     private TransfertService transfertService;
 
     @GetMapping("/all")
-    public List<Transfert> readAllTransferts() {
+    public Iterable<Transfert> readAllTransferts() {
         //log.info("Inside saveTransfert method of TransfertController");
-        return  transfertService.findAllTransferts();
+        return  transfertService.findAll();
     }
 
     @PostMapping("/")
     public Transfert saveTransfert(@RequestBody Transfert transfert) {
         //log.info("Inside saveTransfert method of TransfertController");
-        return  transfertService.saveTransfert(transfert);
+        return  transfertService.save(transfert);
     }
 
     @GetMapping("/{id}")
     public Transfert findTransfertById(@PathVariable("id") Long transfertId) {
         //log.info("Inside findTransfertById method of TransfertController");
-        return transfertService.findTransfertById(transfertId);
+        return transfertService.findByTransfertId(transfertId);
     }
 /*
     @PutMapping("/transfert/{id}")

@@ -3,7 +3,7 @@ package com.ensa.transfertservice.entity;
 
 import com.ensa.transfertservice.enums.*;
 import lombok.*;
-
+import java.util.Date;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -23,7 +23,8 @@ public class Transfert {
     private String clientDonneurTele;
 
     @Column
-    private String[] clientBeneficiaireTele;
+
+    private String clientBeneficiaireTele;
 
     // A remplacer avec la table Client
     @Column
@@ -34,12 +35,6 @@ public class Transfert {
     private Double soldeAgent;
 
     @Column
-    private EtatTransfert etatTransfert;
-
-    @Column
-    private ModeTransfert modeTransfert;
-
-    @Column
     private Double montantOperation;
 
 
@@ -47,23 +42,39 @@ public class Transfert {
     private Double montantTransfert;
 
     @Column
-    private String motifTranfert;
-
-    @Column
-    private TypeFraisTransfert typeFraisTransfert;
-
-    @Column
     private boolean isNotified;
 
 
     @Column
+    @Enumerated(EnumType.STRING)
+    private MotifTransfert motifTranfert;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private EtatTransfert etatTransfert;
+
+
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private ModeTransfert modeTransfert;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private TypeFraisTransfert typeFraisTransfert;
+
+
+    @Column
+    @Enumerated(EnumType.STRING)
     private SourceTransferts sourceTransfert;
 
     @Column
+    @Enumerated(EnumType.STRING)
     private CanalTransferts canalTransfert;
 
     @Column
-    private LocalDateTime date;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date;
 
 
 
