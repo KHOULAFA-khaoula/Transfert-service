@@ -25,7 +25,7 @@ public class TransfertController {
         return  transfertService.findAll();
     }
 
-    @PostMapping("/")
+    @PostMapping("/new")
     public Transfert saveTransfert(@RequestBody Transfert transfert) {
         //log.info("Inside saveTransfert method of TransfertController");
         return  transfertService.save(transfert);
