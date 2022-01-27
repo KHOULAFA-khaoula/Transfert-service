@@ -1,10 +1,7 @@
 package com.ensa.transfertservice.service.impl;
 
 import com.ensa.transfertservice.entity.Transfert;
-import com.ensa.transfertservice.enums.EtatTransfert;
-import com.ensa.transfertservice.enums.ModeTransfert;
-import com.ensa.transfertservice.enums.SourceTransferts;
-import com.ensa.transfertservice.enums.TypeFraisTransfert;
+import com.ensa.transfertservice.enums.*;
 import com.ensa.transfertservice.repository.TransfertRepository;
 import com.ensa.transfertservice.service.TransfertService;
 import lombok.Data;
@@ -25,13 +22,13 @@ public class TransfertServiceImpl implements TransfertService {
     private void calculerFrais(Transfert transfert){
 
         int frais_transfert = 1000;
-        if(transfert.getTypeFraisTransfert().equals(TypeFraisTransfert.CHARGE_DONNEUR_ORDRE)) {
+        if(transfert.getTypeFraisTransfert() == TypeFraisTransfert.CHARGE_DONNEUR_ORDRE) {
             // les frais de transfert ont été ajouté au donneur ,le pirx est a 1000
             Double montantSaisie = transfert.getMontantTransfert();
             transfert.setMontantOperation(montantSaisie+frais_transfert);
             transfert.setMontantTransfert(montantSaisie);
 
-        }else if (transfert.getTypeFraisTransfert().equals(TypeFraisTransfert.CHARGE_BENEFICIARE)){
+        }else if (transfert.getTypeFraisTransfert() == TypeFraisTransfert.CHARGE_BENEFICIARE){
             // les frais de transfert ont été soustré du bénificiaire ,le pirx est a 1000
             Double montantSaisie = transfert.getMontantTransfert();
             transfert.setMontantOperation(montantSaisie);
@@ -62,11 +59,29 @@ public class TransfertServiceImpl implements TransfertService {
         return transfert.getSourceTransfert();
     }
 
+    private boolean veriferCanal(Transfert transfert) {
+        boolean output = false;
+        if (transfert.getCanalTransfert() == CanalTransferts.GAB) {
+            if(transfert.getClientBeneficiaireTele() == transfert.getClientDonneurTele()){
+                output = true;
+            }
+        }
+
+        return output;
+    }
+
     private boolean verfierMontant(Transfert transfert){
         boolean output = false;
         int plafond_mensuel;
         int plafond_annuel;
-        if (transfert.getModeTransfert() == ModeTransfert.DEBIT_COMPTE) {
+        if(transfert.getCanalTransfert() == CanalTransferts.GAB) {
+            plafond_annuel=20000;
+            plafond_mensuel=2000;
+            if (transfert.getMontantTransfert() < plafond_mensuel && transfert.getMontantTransfert() < transfert.getBalanceDonneur()) {
+                output = true;
+            }
+        }
+        else if( transfert.getModeTransfert() == ModeTransfert.DEBIT_COMPTE) {
             plafond_mensuel = 2000;
             /**le compteur du plafond annuel doit etre clalue à partir du  la  date du 1er tranfert emis***/
             plafond_annuel = 20000;
@@ -88,49 +103,58 @@ public class TransfertServiceImpl implements TransfertService {
     private Transfert transfertPointVenteDebit(Transfert transfert){
         boolean isMontantVerified = verfierMontant(transfert);
         boolean isNotified = choisirNotif(transfert);
+        Transfert output =null;
         if(isMontantVerified){
             calculerFrais(transfert);
             transfert.setEtatTransfert(EtatTransfert.ASERVIR);
             if(isNotified) {
                 System.out.println("Twilio ==> appelc au microservice notification");
             }
+            output = this.transfertRepository.save(transfert);
         }
         else {
             /***Excetption**/
             System.out.println("Exception : Le montant dépasser veuiller resaisir à nouveau ou abondonner");
         }
-        return this.transfertRepository.save(transfert);
+        return output;
     }
-    private Transfert transfertPointVenteEspeces(Transfert transfert){
+    private Transfert transfertPointVenteEspeces(Transfert transfert) {
         boolean isMontantVerified = verfierMontant(transfert);
         boolean isNotified = choisirNotif(transfert);
+        Transfert output = null;
         if(isMontantVerified){
             calculerFrais(transfert);
+            transfert.setEtatTransfert(EtatTransfert.ASERVIR);
             if(isNotified) {
                 System.out.println("Twilio ==> appelc au microservice notification");
             }
+            output = this.transfertRepository.save(transfert);
         }
         else {
             /***Excetption**/
             System.out.println("Exception : Le montant dépasser veuiller resaisir à nouveau ou abondonner");
         }
-        return this.transfertRepository.save(transfert);
+        return output;
     }
     private Transfert transfertWalletDebit(Transfert transfert){
 
         boolean isMontantVerified = verfierMontant(transfert);
+        boolean isCanalVerified = veriferCanal(transfert);
         boolean isNotified = choisirNotif(transfert);
-        if(isMontantVerified){
+        Transfert output = null;
+        if(isMontantVerified && isCanalVerified){
             calculerFrais(transfert);
+            transfert.setEtatTransfert(EtatTransfert.ASERVIR);
             if(isNotified) {
                 System.out.println("Twilio ==> appelc au microservice notification");
             }
+            output = this.transfertRepository.save(transfert);
         }
         else {
             /***Excetption**/
             System.out.println("Exception : Le montant dépasser veuiller resaisir à nouveau ou abondonner");
         }
-        return this.transfertRepository.save(transfert);
+        return output;
     }
 
     @Override
@@ -163,11 +187,28 @@ public class TransfertServiceImpl implements TransfertService {
     }
     @Override
     public Transfert update(Transfert transfert) {
-        return null;
+
+        if(transfert.getCanalTransfert() == CanalTransferts.POINT_DE_VENTE){
+            if(transfert.getModeRecuperation() == ModeRecuperation.ESPECE)   {
+                //
+            }
+            else {
+                // Debit vers Wallet
+            }
+        }
+        // si le canal est GAB
+        else {
+
+        }
+
+        transfert.setEtatTransfert(EtatTransfert.PAYÉ);
+        //if (transfert.get)
+        return transfertRepository.save(transfert);
     }
 
     @Override
     public Long delete(Long id) {
+
         return null;
     }
 

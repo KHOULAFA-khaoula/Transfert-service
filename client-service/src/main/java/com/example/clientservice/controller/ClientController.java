@@ -54,6 +54,6 @@ public class ClientController {
 
     @GetMapping("/")
     public ResponseEntity<?> findAll() {
-        return ResponseEntity.ok().body(clientService.findAll());
+        return ResponseEntity.ok().body("clientService.findAll()");
     }
 }

@@ -1,8 +1,10 @@
 package com.ensa.transfertservice.entity;
-
+import com.ensa.transfertservice.generator.TransfertGenerator;
 
 import com.ensa.transfertservice.enums.*;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
+
 import java.util.Date;
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -12,7 +14,13 @@ import java.time.LocalDateTime;
 @Table
 @AllArgsConstructor
 @NoArgsConstructor
+@IdClass(TransfertId.class)
 public class Transfert {
+
+    @Id
+    @GenericGenerator(name="transfert_generator",strategy="com.ensa.transfertservice.generator.TransfertGenerator")
+    @GeneratedValue(generator = "transfert_generator")
+   private String reference_code;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -71,6 +79,10 @@ public class Transfert {
     @Column
     @Enumerated(EnumType.STRING)
     private CanalTransferts canalTransfert;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private ModeRecuperation modeRecuperation;
 
     @Column
     @Temporal(TemporalType.TIMESTAMP)

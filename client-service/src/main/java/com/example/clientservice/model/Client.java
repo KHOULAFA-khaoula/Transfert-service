@@ -2,10 +2,7 @@ package com.example.clientservice.model;
 
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.util.Date;
 /**
  * @author : ayoubrhiti
@@ -24,6 +21,7 @@ public class Client {
     private String email;
     private String phone;
     private float balance;
+    @Temporal(TemporalType.TIMESTAMP)
     private Date created_at;
     /*private Long id;
     private String firstName;

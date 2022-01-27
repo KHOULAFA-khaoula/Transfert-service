@@ -1,10 +1,14 @@
 package com.ensa.transfertservice.controller;
 
 
+import com.ensa.transfertservice.enums.EtatTransfert;
+import com.ensa.transfertservice.proxies.MicroServiceClientProxy;
 import com.ensa.transfertservice.service.TransfertService;
 import com.ensa.transfertservice.entity.Transfert;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +23,7 @@ public class TransfertController {
     @Autowired
     private TransfertService transfertService;
 
+    MicroServiceClientProxy mclientProxy;
     @GetMapping("/all")
     public Iterable<Transfert> readAllTransferts() {
         //log.info("Inside saveTransfert method of TransfertController");
@@ -36,18 +41,27 @@ public class TransfertController {
         //log.info("Inside findTransfertById method of TransfertController");
         return transfertService.findByTransfertId(transfertId);
     }
-/*
-    @PutMapping("/transfert/{id}")
+
+    @PutMapping("/{id}")
     public Transfert updateTransfert( @PathVariable("id") Long transfertId) {
         //log.info("Inside findTransfertById method of TransfertController");
-        Transfert transfert = transfertService.findTransfertById(transfertId);
-        return transfertService.saveTransfert(transfert);
-    }*/
+        Transfert transfert = transfertService.findByTransfertId(transfertId);
+
+        return transfertService.update(transfert);
+    }
    /* @DeleteMapping("/{id}")
     public Transfert deleteTransfert( @PathVariable("id") Long transfertId) {
         //log.info("Inside findTransfertById method of TransfertController");
         return transfertService.saveTransfert(transfert);
     }*/
+
+    @GetMapping("/clientsTesting")
+    public String testerMicroService(Model model) {
+        ResponseEntity<?> clients = mclientProxy.findAll();
+
+        model.addAttribute("clients", clients);
+        return model.toString();
+    }
 
 
 }
