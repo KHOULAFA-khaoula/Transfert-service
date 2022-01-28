@@ -16,6 +16,8 @@ public interface ClientService {
     Client update(Client client) throws ClientNotFoundException;
     Long delete(Long id) throws ClientNotFoundException;
     List<Client> findAll();
-
+    Client findClientById(Long id);
+    Client updateBalance(Client client, Double amount , String operation);
+    Client findByPhone(String phone);
 
 }

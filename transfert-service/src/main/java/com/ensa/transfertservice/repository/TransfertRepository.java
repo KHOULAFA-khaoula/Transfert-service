@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository;
 public interface TransfertRepository extends JpaRepository<Transfert, Long> {
 
     Transfert findByTransfertId(Long tranfertId);
+    Transfert findByReferenceCode(String referenceCode);
 }

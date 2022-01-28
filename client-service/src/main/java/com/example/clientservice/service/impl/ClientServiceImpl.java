@@ -51,4 +51,26 @@ public class ClientServiceImpl implements ClientService {
     public List<Client> findAll() {
         return clientRepository.findAll();
     }
+
+    @Override
+    public Client findClientById(Long id){
+        return clientRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public Client updateBalance(Client client, Double amount , String operation) {
+        float newBalance = client.getBalance();
+        if(operation.equals("Ajouter")) {
+            newBalance += amount;
+        }
+        else{
+            newBalance -= amount;
+        }
+        client.setBalance(newBalance);
+        return clientRepository.save(client);
+    }
+    @Override
+    public Client findByPhone(String phone) {
+        return clientRepository.findByPhone(phone);
+    }
 }

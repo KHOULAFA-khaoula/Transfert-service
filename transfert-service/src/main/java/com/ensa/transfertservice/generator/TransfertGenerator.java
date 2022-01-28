@@ -46,9 +46,9 @@ public class TransfertGenerator extends SequenceStyleGenerator {
             //Creating object of Random class
             Random obj = new Random();
 
-            char[] otp = new char[5];
+            char[] otp = new char[8];
 
-            for (int i = 0; i < 7; i++) {
+            for (int i = 0; i < 8; i++) {
                 otp[i] = (char) (obj.nextInt(10) + 48);
             }
             System.out.print("Your OTP is : " + otp.toString());

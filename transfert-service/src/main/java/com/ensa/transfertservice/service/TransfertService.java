@@ -1,6 +1,7 @@
 package com.ensa.transfertservice.service;
 
 
+import com.ensa.transfertservice.bean.Client;
 import com.ensa.transfertservice.entity.Transfert;
 import com.ensa.transfertservice.enums.EtatTransfert;
 import com.ensa.transfertservice.enums.ModeTransfert;
@@ -17,9 +18,11 @@ import java.util.List;
 
 public interface TransfertService {
 
-    Transfert save(Transfert transfert) ;
-    Transfert update(Transfert transfert);
+    Transfert save(Transfert transfert, Client donneur) ;
+    Transfert update(Transfert transfert, EtatTransfert etatTransfert);
     Transfert findByTransfertId(Long transfertId);
     Long delete(Long id) ;
     List<Transfert> findAll();
+    Transfert findByReferenceCode(String referenceCode);
+
 }

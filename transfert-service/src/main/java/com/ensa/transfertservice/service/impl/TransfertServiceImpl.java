@@ -1,5 +1,6 @@
 package com.ensa.transfertservice.service.impl;
 
+import com.ensa.transfertservice.bean.Client;
 import com.ensa.transfertservice.entity.Transfert;
 import com.ensa.transfertservice.enums.*;
 import com.ensa.transfertservice.repository.TransfertRepository;
@@ -20,8 +21,7 @@ public class TransfertServiceImpl implements TransfertService {
     final TransfertRepository transfertRepository;
 
     private void calculerFrais(Transfert transfert){
-
-        int frais_transfert = 1000;
+        int frais_transfert = 100;
         if(transfert.getTypeFraisTransfert() == TypeFraisTransfert.CHARGE_DONNEUR_ORDRE) {
             // les frais de transfert ont été ajouté au donneur ,le pirx est a 1000
             Double montantSaisie = transfert.getMontantTransfert();
@@ -60,10 +60,10 @@ public class TransfertServiceImpl implements TransfertService {
     }
 
     private boolean veriferCanal(Transfert transfert) {
-        boolean output = false;
+        boolean output = true;
         if (transfert.getCanalTransfert() == CanalTransferts.GAB) {
-            if(transfert.getClientBeneficiaireTele() == transfert.getClientDonneurTele()){
-                output = true;
+            if(!transfert.getClientBeneficiaireTele().equals(transfert.getClientDonneurTele())){
+                output = false;
             }
         }
 
@@ -102,9 +102,10 @@ public class TransfertServiceImpl implements TransfertService {
 
     private Transfert transfertPointVenteDebit(Transfert transfert){
         boolean isMontantVerified = verfierMontant(transfert);
+        boolean isCanalVerified = veriferCanal(transfert);
         boolean isNotified = choisirNotif(transfert);
         Transfert output =null;
-        if(isMontantVerified){
+        if(isMontantVerified && isCanalVerified){
             calculerFrais(transfert);
             transfert.setEtatTransfert(EtatTransfert.ASERVIR);
             if(isNotified) {
@@ -158,9 +159,10 @@ public class TransfertServiceImpl implements TransfertService {
     }
 
     @Override
-    public Transfert save(Transfert transfert) {
+    public Transfert save(Transfert transfert, Client donneur) {
 
-        Transfert output;
+        Transfert output ;
+        transfert.setBalanceDonneur((double)donneur.getBalance());
         if (transfert.getSourceTransfert() == SourceTransferts.POINT_DE_VENTE && transfert.getModeTransfert() == ModeTransfert.DEBIT_COMPTE) {
             output = transfertPointVenteDebit(transfert);
         }
@@ -186,14 +188,14 @@ public class TransfertServiceImpl implements TransfertService {
         return transfertRepository.findAll();
     }
     @Override
-    public Transfert update(Transfert transfert) {
+    public Transfert update(Transfert transfert, EtatTransfert etatTransfert) {
 
         if(transfert.getCanalTransfert() == CanalTransferts.POINT_DE_VENTE){
             if(transfert.getModeRecuperation() == ModeRecuperation.ESPECE)   {
                 //
             }
             else {
-                // Debit vers Wallet
+
             }
         }
         // si le canal est GAB
@@ -201,7 +203,7 @@ public class TransfertServiceImpl implements TransfertService {
 
         }
 
-        transfert.setEtatTransfert(EtatTransfert.PAYÉ);
+        transfert.setEtatTransfert(etatTransfert);
         //if (transfert.get)
         return transfertRepository.save(transfert);
     }
@@ -211,7 +213,10 @@ public class TransfertServiceImpl implements TransfertService {
 
         return null;
     }
-
+    @Override
+    public Transfert findByReferenceCode(String reference_code){
+        return transfertRepository.findByReferenceCode(reference_code);
+    }
    /* void Transfert deleteTransfertById(Long transfertId) {
         //log.info("Inside saveDepartment of DepartmentService");
        return transfertRepository.deleteById(transfertId);

@@ -45,6 +45,16 @@ public class ClientController {
     }
 
 
+
+    @PutMapping("/updateBalance")
+    public ResponseEntity<?> updateBalance( @RequestParam(name = "id") Long clientId,@RequestParam(name = "amount") Double amount, @RequestParam(name = "operation") String operation) {
+        //log.info("Inside findTransfertById method of TransfertController");
+        Client client = clientService.findClientById(clientId);
+
+        return ResponseEntity.ok().body(clientService.updateBalance(client,amount,operation));
+    }
+
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) throws ClientNotFoundException {
         if (id == null)
@@ -54,6 +64,10 @@ public class ClientController {
 
     @GetMapping("/")
     public ResponseEntity<?> findAll() {
-        return ResponseEntity.ok().body("clientService.findAll()");
+        return ResponseEntity.ok().body(clientService.findAll());
     }
+
+     @GetMapping("/phone")
+      public  Client findClientByPhone(@RequestParam(name = "num") String phone) {
+         return clientService.findByPhone(phone);}
 }

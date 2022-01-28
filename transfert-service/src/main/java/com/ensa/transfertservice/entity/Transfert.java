@@ -20,7 +20,7 @@ public class Transfert {
     @Id
     @GenericGenerator(name="transfert_generator",strategy="com.ensa.transfertservice.generator.TransfertGenerator")
     @GeneratedValue(generator = "transfert_generator")
-   private String reference_code;
+   private String referenceCode;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

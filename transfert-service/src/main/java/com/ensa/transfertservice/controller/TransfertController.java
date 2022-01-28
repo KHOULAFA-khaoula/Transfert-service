@@ -1,7 +1,10 @@
 package com.ensa.transfertservice.controller;
 
 
+import com.ensa.transfertservice.bean.Client;
 import com.ensa.transfertservice.enums.EtatTransfert;
+import com.ensa.transfertservice.enums.ModeTransfert;
+import com.ensa.transfertservice.enums.SourceTransferts;
 import com.ensa.transfertservice.proxies.MicroServiceClientProxy;
 import com.ensa.transfertservice.service.TransfertService;
 import com.ensa.transfertservice.entity.Transfert;
@@ -22,18 +25,30 @@ public class TransfertController {
 
     @Autowired
     private TransfertService transfertService;
-
+    @Autowired
     MicroServiceClientProxy mclientProxy;
+
     @GetMapping("/all")
     public Iterable<Transfert> readAllTransferts() {
         //log.info("Inside saveTransfert method of TransfertController");
         return  transfertService.findAll();
     }
 
-    @PostMapping("/new")
-    public Transfert saveTransfert(@RequestBody Transfert transfert) {
-        //log.info("Inside saveTransfert method of TransfertController");
-        return  transfertService.save(transfert);
+    @PostMapping("/emettre")
+    public ResponseEntity<?> saveTransfert(@RequestBody Transfert transfert) {
+        String numeroDonneur = transfert.getClientDonneurTele();
+        Client donneur = mclientProxy.findClientByPhone(numeroDonneur);
+       if (transfertService.save(transfert,donneur) == null) {
+            return  ResponseEntity.badRequest().body("Transfert non valide , veuiller saisir a nouveau !");
+        }
+        else {
+            if((transfert.getModeTransfert() == ModeTransfert.DEBIT_COMPTE)) {
+
+                mclientProxy.updateBalance(donneur.getId(),transfert.getMontantOperation(),"Soustraire");
+            }//sinon soustraire depuis le solde de l'agent*/
+            return  ResponseEntity.ok().body(transfertService.save(transfert,donneur));
+        }
+
     }
 
     @GetMapping("/{id}")
@@ -41,26 +56,47 @@ public class TransfertController {
         //log.info("Inside findTransfertById method of TransfertController");
         return transfertService.findByTransfertId(transfertId);
     }
+    // Servir  point de vente wallet
+    @PutMapping("/servir/PVW/{code}")
+    public ResponseEntity<?> servirTransfertPW( @PathVariable("code") String code) {
+        Transfert transfert = transfertService.findByReferenceCode(code);
+        if(transfert.getEtatTransfert() == EtatTransfert.ASERVIR || transfert.getEtatTransfert() == EtatTransfert.DEBLOQUÉ ) {
+           String numeroBeneficiaire = transfert.getClientBeneficiaireTele();
+           Client beneficiare = mclientProxy.findClientByPhone(numeroBeneficiaire);
+            mclientProxy.updateBalance(beneficiare.getId(), transfert.getMontantTransfert(), "Ajouter");
+           return ResponseEntity.ok().body(transfertService.update(transfert, EtatTransfert.PAYÉ));
 
-    @PutMapping("/{id}")
-    public Transfert updateTransfert( @PathVariable("id") Long transfertId) {
-        //log.info("Inside findTransfertById method of TransfertController");
-        Transfert transfert = transfertService.findByTransfertId(transfertId);
+       }
+      else {
+           return ResponseEntity.badRequest().body("Impossible de servir le transfert "+code +" car il est  "+transfert.getEtatTransfert().toString());
+       }
 
-        return transfertService.update(transfert);
     }
-   /* @DeleteMapping("/{id}")
-    public Transfert deleteTransfert( @PathVariable("id") Long transfertId) {
-        //log.info("Inside findTransfertById method of TransfertController");
-        return transfertService.saveTransfert(transfert);
-    }*/
 
+// Servir  point de vente espéces
+   @PutMapping("/servir/PVE/{code}")
+   public ResponseEntity<?> servirTransfertPE( @PathVariable("code") String code) {
+       Transfert transfert = transfertService.findByReferenceCode(code);
+       if(transfert.getEtatTransfert() == EtatTransfert.ASERVIR || transfert.getEtatTransfert() == EtatTransfert.DEBLOQUÉ ) {
+         //traiter le solde de l'agent
+           return ResponseEntity.ok().body(transfertService.update(transfert, EtatTransfert.PAYÉ));
+
+       }
+       else {
+           return ResponseEntity.badRequest().body("Impossible de servir le transfert "+code +" car il est "+transfert.getEtatTransfert().toString());
+       }
+   }
     @GetMapping("/clientsTesting")
-    public String testerMicroService(Model model) {
+    public ResponseEntity<?> testerMicroService(Model model) {
         ResponseEntity<?> clients = mclientProxy.findAll();
 
         model.addAttribute("clients", clients);
-        return model.toString();
+        return clients;
+    }
+    //Recuperer le transfert par reference
+    @GetMapping("/reference/{code}")
+    public ResponseEntity<?> findByReferenceCode(@PathVariable("code") String reference ){
+       return ResponseEntity.ok().body(transfertService.findByReferenceCode(reference));
     }
 
 
