@@ -1,13 +1,19 @@
 package com.ensa.transfertservice.controller;
 
 
+import com.ensa.transfertservice.bean.Agent;
 import com.ensa.transfertservice.bean.Client;
+import com.ensa.transfertservice.bean.SmsRequest;
 import com.ensa.transfertservice.enums.EtatTransfert;
 import com.ensa.transfertservice.enums.ModeTransfert;
 import com.ensa.transfertservice.enums.SourceTransferts;
+import com.ensa.transfertservice.proxies.MicroServiceAgentProxy;
 import com.ensa.transfertservice.proxies.MicroServiceClientProxy;
+import com.ensa.transfertservice.proxies.MicroServiceNotificationProxy;
 import com.ensa.transfertservice.service.TransfertService;
 import com.ensa.transfertservice.entity.Transfert;
+import org.apache.tomcat.util.json.JSONParser;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -27,6 +33,10 @@ public class TransfertController {
     private TransfertService transfertService;
     @Autowired
     MicroServiceClientProxy mclientProxy;
+    @Autowired
+    MicroServiceAgentProxy magentProxy;
+    @Autowired
+    MicroServiceNotificationProxy mnotifProxy;
 
     @GetMapping("/all")
     public Iterable<Transfert> readAllTransferts() {
@@ -46,6 +56,10 @@ public class TransfertController {
 
                 mclientProxy.updateBalance(donneur.getId(),transfert.getMontantOperation(),"Soustraire");
             }//sinon soustraire depuis le solde de l'agent*/
+
+               SmsRequest smsRequest = new SmsRequest( transfert.getClientBeneficiaireTele(), "Un transfert vous a été envoyé avec la référence "+transfert.getReferenceCode()+" de montant "+transfert.getMontantTransfert()+"depuis le client donneur  de numero de télphone "+transfert.getClientDonneurTele());
+               mnotifProxy.sendSms(smsRequest);
+
             return  ResponseEntity.ok().body(transfertService.save(transfert,donneur));
         }
 
@@ -64,6 +78,10 @@ public class TransfertController {
            String numeroBeneficiaire = transfert.getClientBeneficiaireTele();
            Client beneficiare = mclientProxy.findClientByPhone(numeroBeneficiaire);
             mclientProxy.updateBalance(beneficiare.getId(), transfert.getMontantTransfert(), "Ajouter");
+            if(transfert.isNotified()) {
+                SmsRequest smsRequest = new SmsRequest( transfert.getClientDonneurTele(), "Votre transfert de reference "+ transfert.getReferenceCode()+" a été servi avec succés !");
+                mnotifProxy.sendSms(smsRequest);
+            }
            return ResponseEntity.ok().body(transfertService.update(transfert, EtatTransfert.PAYÉ));
 
        }
@@ -74,12 +92,20 @@ public class TransfertController {
     }
 
 // Servir  point de vente espéces
-   @PutMapping("/servir/PVE/{code}")
-   public ResponseEntity<?> servirTransfertPE( @PathVariable("code") String code) {
+   @PutMapping("/servir/PVE/{id}/{code}")
+   public ResponseEntity<?> servirTransfertPE( @PathVariable("id") Long agentId, @PathVariable("code") String code) {
        Transfert transfert = transfertService.findByReferenceCode(code);
        if(transfert.getEtatTransfert() == EtatTransfert.ASERVIR || transfert.getEtatTransfert() == EtatTransfert.DEBLOQUÉ ) {
          //traiter le solde de l'agent
-           return ResponseEntity.ok().body(transfertService.update(transfert, EtatTransfert.PAYÉ));
+           Agent agent = magentProxy.getAgentsById(agentId);
+          // magentProxy.updateBalance(Agent.getId(), transfert.getMontantTransfert(), "Soustraire");
+
+           //return ResponseEntity.ok().body(transfertService.update(transfert, EtatTransfert.PAYÉ));
+           if(transfert.isNotified()) {
+               SmsRequest smsRequest = new SmsRequest( transfert.getClientDonneurTele(), "Votre transfert de reference "+ transfert.getReferenceCode()+" a été servi avec succés !");
+               mnotifProxy.sendSms(smsRequest);
+           }
+           return ResponseEntity.ok().body(agent);
 
        }
        else {
@@ -92,6 +118,13 @@ public class TransfertController {
 
         model.addAttribute("clients", clients);
         return clients;
+    }
+    @GetMapping("/agentsTesting/{id}")
+    public ResponseEntity<?> testerAgentMicroService(Model model,@PathVariable("id") Long agentId) {
+        //ResponseEntity<?> agents = magentProxy.getAgents();
+        Agent agent =magentProxy.getAgentsById(agentId);
+        model.addAttribute("agents", agent);
+        return ResponseEntity.ok().body(agent);
     }
     //Recuperer le transfert par reference
     @GetMapping("/reference/{code}")
