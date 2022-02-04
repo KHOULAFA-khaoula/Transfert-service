@@ -70,6 +70,18 @@ public class TransfertController {
         //log.info("Inside findTransfertById method of TransfertController");
         return transfertService.findByTransfertId(transfertId);
     }
+
+    @GetMapping("/client/{numeroTele}")
+    public List<Transfert> findTransfertByTelephoneDonneur(@PathVariable("numeroTele") String telephoneDonneur) {
+        //log.info("Inside findTransfertById method of TransfertController");
+        return transfertService.findByClientDonneurTele(telephoneDonneur);
+    }
+   /* @GetMapping("/agent/{id}")
+    public Transfert findTByAgentId(@PathVariable("id") Long transfertId) {
+        //log.info("Inside findTransfertById method of TransfertController");
+        return transfertService.findByTransfertId(transfertId);
+    }*/
+
     // Servir  point de vente wallet
     @PutMapping("/servir/PVW/{code}")
     public ResponseEntity<?> servirTransfertPW( @PathVariable("code") String code) {
@@ -98,14 +110,16 @@ public class TransfertController {
        if(transfert.getEtatTransfert() == EtatTransfert.ASERVIR || transfert.getEtatTransfert() == EtatTransfert.DEBLOQUÉ ) {
          //traiter le solde de l'agent
            Agent agent = magentProxy.getAgentsById(agentId);
-          // magentProxy.updateBalance(Agent.getId(), transfert.getMontantTransfert(), "Soustraire");
+           magentProxy.updateBalance(agentId, transfert.getMontantTransfert(), "Soustraire");
 
-           //return ResponseEntity.ok().body(transfertService.update(transfert, EtatTransfert.PAYÉ));
            if(transfert.isNotified()) {
                SmsRequest smsRequest = new SmsRequest( transfert.getClientDonneurTele(), "Votre transfert de reference "+ transfert.getReferenceCode()+" a été servi avec succés !");
                mnotifProxy.sendSms(smsRequest);
            }
-           return ResponseEntity.ok().body(agent);
+
+           return ResponseEntity.ok().body(transfertService.update(transfert, EtatTransfert.PAYÉ));
+
+
 
        }
        else {
@@ -123,6 +137,7 @@ public class TransfertController {
     public ResponseEntity<?> testerAgentMicroService(Model model,@PathVariable("id") Long agentId) {
         //ResponseEntity<?> agents = magentProxy.getAgents();
         Agent agent =magentProxy.getAgentsById(agentId);
+        magentProxy.updateBalance(agentId, 1000.0, "Soustraire");
         model.addAttribute("agents", agent);
         return ResponseEntity.ok().body(agent);
     }

@@ -181,7 +181,10 @@ public class TransfertServiceImpl implements TransfertService {
         //log.info("Inside saveDepartment of DepartmentService");
         return transfertRepository.findByTransfertId(transfertId);
     }
-
+    @Override
+    public List<Transfert> findByClientDonneurTele(String clientDonneurTele){
+        return transfertRepository.findByClientDonneurTele(clientDonneurTele);
+    }
 
     @Override
     public List<Transfert> findAll(){

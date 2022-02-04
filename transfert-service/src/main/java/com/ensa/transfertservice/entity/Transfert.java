@@ -31,6 +31,9 @@ public class Transfert {
     private String clientDonneurTele;
 
     @Column
+    private Long agentId;
+
+    @Column
 
     private String clientBeneficiaireTele;
 

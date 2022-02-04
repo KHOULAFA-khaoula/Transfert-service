@@ -24,5 +24,6 @@ public interface TransfertService {
     Long delete(Long id) ;
     List<Transfert> findAll();
     Transfert findByReferenceCode(String referenceCode);
+    List<Transfert> findByClientDonneurTele(String clientDonneurTele);
 
 }
