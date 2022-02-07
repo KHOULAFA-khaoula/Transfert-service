@@ -55,9 +55,14 @@ public class TransfertController {
             if((transfert.getModeTransfert() == ModeTransfert.DEBIT_COMPTE)) {
 
                 mclientProxy.updateBalance(donneur.getId(),transfert.getMontantOperation(),"Soustraire");
-            }//sinon soustraire depuis le solde de l'agent*/
+            }else {
+                Agent agent = magentProxy.getAgentsById(transfert.getAgentId());
+                magentProxy.updateBalance(transfert.getAgentId(), transfert.getMontantTransfert(), "Soustraire");
 
-               SmsRequest smsRequest = new SmsRequest( transfert.getClientBeneficiaireTele(), "Un transfert vous a été envoyé avec la référence "+transfert.getReferenceCode()+" de montant "+transfert.getMontantTransfert()+"depuis le client donneur  de numero de télphone "+transfert.getClientDonneurTele());
+            }
+
+
+              SmsRequest smsRequest = new SmsRequest( transfert.getClientBeneficiaireTele(), "Un transfert vous a été envoyé avec la référence "+transfert.getReferenceCode()+" de montant "+transfert.getMontantTransfert()+"depuis le client donneur  de numero de télphone "+transfert.getClientDonneurTele());
                mnotifProxy.sendSms(smsRequest);
 
             return  ResponseEntity.ok().body(transfertService.save(transfert,donneur));
@@ -76,14 +81,14 @@ public class TransfertController {
         //log.info("Inside findTransfertById method of TransfertController");
         return transfertService.findByClientDonneurTele(telephoneDonneur);
     }
-   /* @GetMapping("/agent/{id}")
-    public Transfert findTByAgentId(@PathVariable("id") Long transfertId) {
+    @GetMapping("/agent/{id}")
+    public List<Transfert> findTByAgentId(@PathVariable("id") Long agentId) {
         //log.info("Inside findTransfertById method of TransfertController");
-        return transfertService.findByTransfertId(transfertId);
-    }*/
+        return transfertService.findByAgentId(agentId);
+    }
 
     // Servir  point de vente wallet
-    @PutMapping("/servir/PVW/{code}")
+    @PostMapping("/servir/PVW/{code}")
     public ResponseEntity<?> servirTransfertPW( @PathVariable("code") String code) {
         Transfert transfert = transfertService.findByReferenceCode(code);
         if(transfert.getEtatTransfert() == EtatTransfert.ASERVIR || transfert.getEtatTransfert() == EtatTransfert.DEBLOQUÉ ) {

@@ -41,6 +41,7 @@ module.exports = {
                 });
             }
             return res.json({
+                agentId:results.agentId,
                 email:results.email,
                 password:results.password,
                 company:results.company,

@@ -12,4 +12,6 @@ public interface TransfertRepository extends JpaRepository<Transfert, Long> {
     Transfert findByTransfertId(Long tranfertId);
     Transfert findByReferenceCode(String referenceCode);
     List<Transfert> findByClientDonneurTele(String clientDonneurTele);
+    List<Transfert> findByAgentId(Long agentId);
+
 }

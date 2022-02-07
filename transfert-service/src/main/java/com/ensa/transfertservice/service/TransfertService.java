@@ -25,5 +25,6 @@ public interface TransfertService {
     List<Transfert> findAll();
     Transfert findByReferenceCode(String referenceCode);
     List<Transfert> findByClientDonneurTele(String clientDonneurTele);
+    List<Transfert> findByAgentId(Long agentId);
 
 }

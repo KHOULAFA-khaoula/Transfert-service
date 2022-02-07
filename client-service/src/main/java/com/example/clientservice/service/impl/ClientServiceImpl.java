@@ -22,10 +22,10 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Client save(Client client) throws ClientDuplicatedException {
-        Client clientfromDB = clientRepository.findById(client.getId()).orElse(null);
+       /* Client clientfromDB = clientRepository.findById(client.getId()).orElse(null);
         if(clientfromDB != null ){
             throw new ClientDuplicatedException(client.getId());
-        }
+        }*/
         return clientRepository.save(client);
     }
 

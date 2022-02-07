@@ -120,10 +120,10 @@ public class TransfertServiceImpl implements TransfertService {
         return output;
     }
     private Transfert transfertPointVenteEspeces(Transfert transfert) {
-        boolean isMontantVerified = verfierMontant(transfert);
+       // boolean isMontantVerified = verfierMontant(transfert);
         boolean isNotified = choisirNotif(transfert);
         Transfert output = null;
-        if(isMontantVerified){
+        if(true){
             calculerFrais(transfert);
             transfert.setEtatTransfert(EtatTransfert.ASERVIR);
             if(isNotified) {
@@ -224,5 +224,8 @@ public class TransfertServiceImpl implements TransfertService {
         //log.info("Inside saveDepartment of DepartmentService");
        return transfertRepository.deleteById(transfertId);
     }*/
+   public List<Transfert> findByAgentId(Long agentId){
+       return transfertRepository.findByAgentId(agentId);
+   }
 
 }
